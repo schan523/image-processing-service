@@ -5,7 +5,7 @@ import { register } from '../middleware/register.js';
 const userRouter = express.Router();
 
 userRouter.post('/register', register, (req, res) => {
-    res.status(201).send("User registered");
+    res.status(201).send(req.userDoc);
 })
 
 userRouter.use(errorHandler);
