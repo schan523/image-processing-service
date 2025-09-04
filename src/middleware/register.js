@@ -1,8 +1,8 @@
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { collection, query, where, addDoc, getDoc, getDocs } from 'firebase/firestore';
 import jwt from 'jsonwebtoken';
-import { db } from '../firebase.js';
 import dotenv from 'dotenv';
+import { db } from '../firebase.js';
 
 dotenv.config();
 
