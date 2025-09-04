@@ -1,7 +1,10 @@
-import express from "express";
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { collection, query, where, addDoc, getDoc, getDocs } from 'firebase/firestore';
+import jwt from 'jsonwebtoken';
 import { db } from '../firebase.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export const register = async (req, res, next) => {
     const auth = getAuth();
@@ -40,5 +43,6 @@ export const register = async (req, res, next) => {
 
     userDoc = await getDoc(userDoc);
     req.userDoc = userDoc.data();
+    req.userDoc.jwt = jwt.sign({ "username": username }, process.env.TOKEN_SECRET, { expiresIn: '1800s' });
     next();
 }
