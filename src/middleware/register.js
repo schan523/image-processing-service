@@ -1,14 +1,11 @@
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
-import { collection, query, where, addDoc, getDoc, getDocs } from 'firebase/firestore';
+import { db } from '../loaders/mongo.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import { db } from '../firebase.js';
 
 dotenv.config();
 
 export const register = async (req, res, next) => {
-    const auth = getAuth();
-
+    
     const username = req.body.username;
     const password = req.body.password;
     
@@ -18,31 +15,22 @@ export const register = async (req, res, next) => {
         return next(err);
     }
     
-    const q = query(collection(db, "users"), where("username", "==", username));
-    const snapshot = await getDocs(q);
+    const coll = db.collection("users");
+    const exists = await coll.findOne({username: {$eq: username}});
 
-    if (!snapshot.empty) {
+    if (exists) {
         const err = new Error("An account using this email address already exists.");
         err.status = 400;
         return next(err);
     }
 
-    createUserWithEmailAndPassword(auth, username, password)
-    .then((userCredential) => {
-        const user = userCredential.user;
+    const data = {
+        "username": username,
+        "password": password
+    }
 
-    })
-    .catch((err) => {
-        next(err);
-    })
-
-    let userDoc = await addDoc(collection(db, "users"), {
-        username: username,
-        password: password
-    });
-
-    userDoc = await getDoc(userDoc);
-    req.userDoc = userDoc.data();
-    req.userDoc.jwt = jwt.sign({ "username": username }, process.env.TOKEN_SECRET, { expiresIn: '1800s' });
+    const result = await coll.insertOne(data);
+    req.userData = data;
+    req.userData.jwt = jwt.sign({ "username": username }, process.env.TOKEN_SECRET, { expiresIn: '1800s' });
     next();
 }

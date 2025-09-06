@@ -6,7 +6,7 @@ import { login } from '../middleware/login.js';
 const userRouter = express.Router();
 
 userRouter.post('/register', register, (req, res) => {
-    res.status(201).send(req.userDoc);
+    res.status(201).send(req.userData);
 })
 
 userRouter.post('/login', login, (req, res) => {
