@@ -6,8 +6,7 @@ dotenv.config();
 
 export const register = async (req, res, next) => {
     
-    const username = req.body.username;
-    const password = req.body.password;
+    const { username, password } = req.body;
     
     if (!username || !password) {
         const err = new Error("Missing credientials.");
@@ -16,7 +15,7 @@ export const register = async (req, res, next) => {
     }
     
     const coll = db.collection("users");
-    const exists = await coll.findOne({username: {$eq: username}});
+    const exists = await coll.findOne({username: username});
 
     if (exists) {
         const err = new Error("An account using this email address already exists.");
@@ -24,13 +23,10 @@ export const register = async (req, res, next) => {
         return next(err);
     }
 
-    const data = {
-        "username": username,
-        "password": password
-    }
+    const data = { "username": username, "password": password }
 
     const result = await coll.insertOne(data);
     req.userData = data;
-    req.userData.jwt = jwt.sign({ "username": username }, process.env.TOKEN_SECRET, { expiresIn: '1800s' });
+    req.userData.jwt = jwt.sign(data, process.env.TOKEN_SECRET, { expiresIn: '1800s' });
     next();
 }

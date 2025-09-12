@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export const uploadImage = async (req, res, next) => {
+    console.log(req.user);
 
     const params = {
         Bucket: process.env.BUCKET_NAME,

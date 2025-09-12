@@ -10,7 +10,7 @@ userRouter.post('/register', register, (req, res) => {
 })
 
 userRouter.post('/login', login, (req, res) => {
-    res.status(201).send(req.doc);
+    res.status(201).send(req.user);
 })
 
 userRouter.use(errorHandler);
