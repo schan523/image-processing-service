@@ -10,14 +10,16 @@ const imageRouter = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// imageRouter.use(authenticateToken);
+imageRouter.use(authenticateToken);
 
-imageRouter.post("/:id/transform", authenticateToken, transformImage, (req, res) => {
+imageRouter.post("/:id/transform", transformImage, (req, res) => {
     res.status(200).send("Image transformed successfully.");
 })
 
-imageRouter.post("/", authenticateToken, upload.single('image'), uploadImage, (req, res) => {
-    res.status(200).send(req.file);
+imageRouter.post("/", upload.single('image'), uploadImage, (req, res) => {
+    const { buffer, ...metadata } = req.file;
+    metadata.url = req.url;
+    res.status(200).send(metadata);
 })
 
 
