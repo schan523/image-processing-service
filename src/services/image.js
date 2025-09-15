@@ -1,12 +1,14 @@
 import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import dotenv from 'dotenv';
+import sharp from 'sharp';
 
 import { s3 } from '../loaders/s3.js';
 
 dotenv.config();
 
 export default class ImageService {
+
     static async upload(file) {
         const command = new PutObjectCommand({
             Bucket: process.env.BUCKET_NAME,
@@ -26,5 +28,9 @@ export default class ImageService {
         metadata.url = url;
 
         return metadata;
+    }
+
+    static async transform(transformations) {
+
     }
  }
