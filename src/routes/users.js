@@ -1,16 +1,13 @@
 import express from 'express';
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 
 import { errorHandler } from '../middleware/errorHandler.js';
-import { verifyUser } from '../middleware/verifyUser.js';
-import { db } from '../loaders/mongo.js';
+import UserService from '../services/user.js';
 
 dotenv.config();
 const userRouter = express.Router();
 
-userRouter.post('/register', async (req, res) => {
+userRouter.post('/register', async (req, res, next) => {
     const { username, password } = req.body;
     
     if (!username || !password) {
@@ -18,34 +15,23 @@ userRouter.post('/register', async (req, res) => {
         err.status = 400;
         return next(err);
     }
-    
-    const coll = db.collection("users");
-    const exists = await coll.findOne({username: username});
 
-    if (exists) {
+    const userData = await UserService.register(username, password);
+
+    if (!userData) {
         const err = new Error("An account using this email address already exists.");
         err.status = 400;
         return next(err);
     }
 
-    const saltRounds = 10;
-    req.userData = {username: username};
-    bcrypt.hash(password, saltRounds, async (err, hash) => {
-        await coll.insertOne({ "username": username, "password": hash});
-        req.userData.password = hash;
-    })
-
-    req.userData.jwt = jwt.sign({"username": username}, process.env.TOKEN_SECRET, { expiresIn: '1800s' });
-    res.status(201).send(req.userData);
+    res.status(201).send(userData);
 })
 
 
-userRouter.post('/login', verifyUser, (req, res) => {
+userRouter.post('/login', async (req, res) => {
     const { username, password } = req.body;
-
-    req.user.jwt = jwt.sign({ "username": username, "password": password }, process.env.TOKEN_SECRET, { expiresIn: '1800s' });
-
-    res.status(201).send(req.user);
+    const user = await UserService.login(username, password);
+    res.status(201).send(user);
 })
 
 userRouter.use(errorHandler);

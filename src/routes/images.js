@@ -1,12 +1,10 @@
 import express from 'express';
 import multer from 'multer';
-import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import sharp from 'sharp';
 import dotenv from 'dotenv';
 
+import imageService from '../services/image.js';
 import { authenticateToken, errorHandler } from '../middleware/index.js';
-import { s3 } from '../loaders/s3.js';
 
 const imageRouter = express.Router();
 dotenv.config();
@@ -22,23 +20,8 @@ imageRouter.post("/:id/transform", (req, res) => {
 
 
 imageRouter.post("/", upload.single('image'), async (req, res) => {
-
-    const command = new PutObjectCommand({
-        Bucket: process.env.BUCKET_NAME,
-        Key: req.file.originalname,
-        Body: req.file.buffer,
-        ContentType: req.file.mimetype
-    });
-    await s3.send(command);
-
-    const urlCommand = new GetObjectCommand({
-        Bucket: process.env.BUCKET_NAME,
-        Key: req.file.originalname
-    });
-    req.url = await getSignedUrl(s3, urlCommand, { expiresIn: 1800});
-
-    const { buffer, ...metadata } = req.file;
-    metadata.url = req.url;
+    const file = req.file;
+    const metadata = await imageService.upload(file);
     res.status(200).send(metadata);
 })
 
