@@ -31,6 +31,22 @@ export default class ImageService {
     }
 
     static async transform(transformations) {
+        Object.keys(transformations).forEach(key => {
+            const value = transformations[key];
+            if (key == "resize") {
+                const buffer = await sharp().resize({...value, ...{"fit": "contain"}}).toBuffer()
+            }             
+        })
+    }
+
+    static async retrieve() {
+        const command = new GetObjectCommand({
+            Bucket: process.env.BUCKET_NAME,
+            Key
+        });
+        const url = await getSignedUrl(s3, command, { expiresIn: 1800});
 
     }
+
+    static paginate() {}
  }
