@@ -5,7 +5,8 @@ const UserSchema = new mongoose.Schema({
         type: String,
         unique: true
     },
-    password: String
+    password: String,
+    images: [String]
 });
 
 export const userModel = mongoose.model("users", UserSchema)

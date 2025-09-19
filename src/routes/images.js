@@ -19,9 +19,18 @@ imageRouter.post("/:id/transform", (req, res) => {
 })
 
 
+imageRouter.get("/:id", async (req, res) => {
+    const user = req.user;
+    const id = req.params.id;
+    const metadata = await imageService.retrieve(user, id);
+    res.status(200).send(metadata);
+})
+
+
 imageRouter.post("/", upload.single('image'), async (req, res) => {
     const file = req.file;
-    const metadata = await imageService.upload(file);
+    const username = req.user;
+    const metadata = await imageService.upload(username, file);
     res.status(200).send(metadata);
 })
 

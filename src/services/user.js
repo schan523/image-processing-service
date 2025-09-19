@@ -1,7 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-// import { db } from '../loaders/mongo.js';
 import db from '../loaders/mongoose.js';
 import { userModel } from '../models/user.js';
 import mongoose from 'mongoose';    
@@ -17,7 +16,7 @@ export default class UserService {
             userData.password = hash;
         }
 
-        const user = new userModel({email: username, password: hash});
+        const user = new userModel({email: username, password: hash, images: []});
         await user.save();
 
         userData.jwt = jwt.sign({"username": username}, process.env.TOKEN_SECRET, { expiresIn: '1800s' });
@@ -26,12 +25,11 @@ export default class UserService {
     }
 
     static async login(username, password) {
-        // const coll = db.collection("users");
-        // const user = await coll.findOne({username: username});
 
         await db();
         let user = await userModel.findOne({ "email": username}).select('-_id -__v');
-        user = user.toObject();        const hashedPassword = user?.password;
+        user = user.toObject();        
+        const hashedPassword = user?.password;
 
         if (!user) {
             return;
