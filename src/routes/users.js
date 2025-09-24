@@ -1,10 +1,8 @@
 import express from 'express';
-import dotenv from 'dotenv';
 
 import { errorHandler } from '../middleware/errorHandler.js';
 import UserService from '../services/user.js';
 
-dotenv.config();
 const userRouter = express.Router();
 
 userRouter.post('/register', async (req, res, next) => {

@@ -35,6 +35,20 @@ imageRouter.post("/", upload.single('image'), async (req, res) => {
 })
 
 
+imageRouter.get("/", async (req, res) => {
+    const page = req.query.page;
+    const limit = req.query.limit;
+    const user = req.user;
+
+    const results = await imageService.paginate(user, page, limit);
+    if (!results) {
+        res.status(400).send("There are not enough results to return a list with the requested parameters.");
+    }
+
+    res.status(200).send(results);
+})
+
+
 imageRouter.use(errorHandler);
 
 export { imageRouter }
