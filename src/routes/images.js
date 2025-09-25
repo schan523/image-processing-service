@@ -14,8 +14,13 @@ const upload = multer({ storage: storage });
 
 imageRouter.use(authenticateToken);
 
-imageRouter.post("/:id/transform", (req, res) => {
-    res.status(200).send("Image transformed successfully.");
+imageRouter.post("/:id/transform", async (req, res) => {
+    const user = req.user;
+    const transformations = req.body.transformations;
+    const id = req.params.id;
+
+    const metadata = await imageService.transform(user, id, transformations);
+    res.status(200).send(metadata);
 })
 
 

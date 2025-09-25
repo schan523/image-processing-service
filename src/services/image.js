@@ -39,7 +39,16 @@ export default class ImageService {
         return metadata;
     }
 
-    static async transform(transformations) {
+    static async transform(user, id, transformations) {
+        await db();
+        const dbUser = await userModel.findOne({email: user.username});
+        const key = dbUser.images[id];
+
+        const response = new GetObjectCommand({
+            Bucket: process.env.BUCKET_NAME,
+            Key: key
+        });
+
         Object.keys(transformations).forEach(async (key) => {
             const value = transformations[key];
             if (key == "resize") {
