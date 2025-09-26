@@ -1,4 +1,4 @@
-import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { PutObjectCommand, GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import dotenv from 'dotenv';
 import sharp from 'sharp';
@@ -44,17 +44,35 @@ export default class ImageService {
         const dbUser = await userModel.findOne({email: user.username});
         const key = dbUser.images[id];
 
-        const response = new GetObjectCommand({
+        const command = new GetObjectCommand({
             Bucket: process.env.BUCKET_NAME,
             Key: key
         });
 
+        const response = await s3.send(command);
+        const chunks = [];
+        for await (const chunk of response.Body) {
+            chunks.push(chunk);
+        }
+        let buffer = Buffer.concat(chunks);
+
         Object.keys(transformations).forEach(async (key) => {
             const value = transformations[key];
             if (key == "resize") {
-                const buffer = await sharp().resize({...value, ...{"fit": "contain"}}).toBuffer();
-            }             
+                buffer = await sharp(buffer).resize({...value, ...{"fit": "contain"}}).toBuffer();
+            }     
         })
+
+        const putCommand = new PutObjectCommand({
+            Bucket: process.env.BUCKET_NAME,
+            Key: key,
+            Body: buffer,
+            ContentType: "image/png"
+        });
+        await s3.send(putCommand);
+
+        const url = await getSignedUrl(s3, command, {expiresin: 1800});
+        return url;
     }
 
     static async retrieve(user, id) {
