@@ -56,12 +56,11 @@ export default class ImageService {
         }
         let buffer = Buffer.concat(chunks);
 
-        Object.keys(transformations).forEach(async (key) => {
-            const value = transformations[key];
+        for (let [key, value] of Object.entries(transformations)) {
             if (key == "resize") {
                 buffer = await sharp(buffer).resize({...value, ...{"fit": "contain"}}).toBuffer();
-            }     
-        })
+            }
+        }
 
         const putCommand = new PutObjectCommand({
             Bucket: process.env.BUCKET_NAME,
