@@ -1,20 +1,19 @@
 import express from 'express';
 
+import { userSchema } from '../models/userSchema.js';
 import { errorHandler } from '../middleware/errorHandler.js';
 import UserService from '../services/user.js';
 
 const userRouter = express.Router();
 
 userRouter.post('/register', async (req, res, next) => {
-    const { username, password } = req.body;
-    
-    if (!username || !password) {
-        const err = new Error("Missing credientials.");
-        err.status = 400;
-        return next(err);
+    const { error, value } = userSchema.validate(req.body);
+  
+    if (error) {
+        return next(error);
     }
 
-    const userData = await UserService.register(username, password);
+    const userData = await UserService.register(value.username, value.password);
 
     if (!userData) {
         const err = new Error("An account using this email address already exists.");

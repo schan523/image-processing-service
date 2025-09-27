@@ -10,6 +10,7 @@ import { userModel } from '../models/user.js';
 
 dotenv.config();
 
+
 export default class ImageService {
 
     static async upload(user, file) {
@@ -39,6 +40,7 @@ export default class ImageService {
         return metadata;
     }
 
+
     static async transform(user, id, transformations) {
         await db();
         const dbUser = await userModel.findOne({email: user.username});
@@ -57,8 +59,24 @@ export default class ImageService {
         let buffer = Buffer.concat(chunks);
 
         for (let [key, value] of Object.entries(transformations)) {
-            if (key == "resize") {
-                buffer = await sharp(buffer).resize({...value, ...{"fit": "contain"}}).toBuffer();
+            switch (key) {
+                case "resize":
+                    buffer = await sharp(buffer).resize({...value, ...{"fit": "contain"}}).toBuffer();
+                    break;
+                case "crop":
+                    buffer = await sharp(buffer).extract(value).toBuffer();
+                    break;
+                case "rotate":
+                    buffer = await sharp(buffer).rotate(value).toBuffer();
+                    break;
+                case "format":
+                    buffer = await sharp(buffer).toFormat(value).toBuffer();
+                    break;
+                case "filters":
+                    if (value.grayscale) {
+                        buffer = await sharp(buffer).grayscale().toBuffer();
+                    }
+                    break;
             }
         }
 
@@ -74,6 +92,7 @@ export default class ImageService {
         return url;
     }
 
+
     static async retrieve(user, id) {
         await db();
         const dbUser = await userModel.findOne({email: user.username});
@@ -88,6 +107,7 @@ export default class ImageService {
 
         return { url: url };
     }
+
 
     static async paginate(user, page, limit) {
         await db();

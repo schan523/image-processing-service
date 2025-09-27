@@ -1,9 +1,10 @@
 import express from 'express';
 import multer from 'multer';
-import sharp from 'sharp';
+import joi from 'joi';
 import dotenv from 'dotenv';
 
 import imageService from '../services/image.js';
+import { transformSchema } from '../models/transformSchema.js';
 import { authenticateToken, errorHandler } from '../middleware/index.js';
 
 const imageRouter = express.Router();
@@ -17,9 +18,14 @@ imageRouter.use(authenticateToken);
 imageRouter.post("/:id/transform", async (req, res) => {
     const user = req.user;
     const transformations = req.body.transformations;
-    const id = req.params.id;
+    const { error, value } = transformSchema.validate(transformations)
 
-    const metadata = await imageService.transform(user, id, transformations);
+    if (error) {
+        return next(error);
+    }
+    
+    const id = req.params.id;
+    const metadata = await imageService.transform(user, id, value);
     res.status(200).send(metadata);
 })
 
